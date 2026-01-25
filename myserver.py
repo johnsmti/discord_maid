@@ -8,9 +8,10 @@ def home():
     return "Maid Cafe Bot is Online!"
 
 def run():
-    # กำหนดพอร์ต 8080 ซึ่งเป็นพอร์ตมาตรฐานที่ Hosting มักใช้
-    app.run(host='0.0.0.0', port=8080)
+    # Render Free แนะนำให้ใช้พอร์ต 10000
+    app.run(host='0.0.0.0', port=10000)
 
-def keep_alive():
+# ชื่อฟังก์ชันต้องเป็น server_on เพื่อให้ main.py เรียกใช้ได้
+def server_on():
     t = Thread(target=run)
     t.start()
