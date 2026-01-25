@@ -12,7 +12,7 @@ from datetime import datetime
 VIP_ROLE_ID = 1462100797734125825      # 👈 ใส่ ID ยศ VIP
 RANK_VIP_ID = 1453046003212095669      # ยศ VIP (จากการสะสมยอด - ถ้าใช้อันเดียวกับข้างบนก็ใส่เลขเดิม)
 RANK_REG_ID = 1453045889424949349
-STAFF_CHANNEL_ID = 1452613380102946887 # 👈 ใส่ ID ห้อง Staff สำหรับแจ้งเตือน
+STAFF_CHANNEL_ID = 1464980257160429721 # 👈 ใส่ ID ห้อง Staff สำหรับแจ้งเตือน
 
 # =========================================================
 # ⚙️ 2. ข้อมูลเมด
@@ -21,20 +21,22 @@ MAID_DATA = {
     "maid_01": {
         "id": 880704502846586911, 
         "name": "น้องไข่หวาน 🍳",
+        "emoji": "<a:HGWS_92:1451914602622357647",
         "color": 0xffeebb, 
         "desc": (
             "❝ นายท่านรับข้าวห่อไข่ไหมคะ? ❞\n"
-            "━━━━━━━━━━━━━━━━━\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             "**<a:dount_withcreams:1452651298942877866> ความถนัด:** ร่ายมนต์ความอร่อย, ทำอาหาร\n"
             "**<a:920979210204487690:1449346155589926912> นิสัย:** ร่าเริง, ซุ่มซ่ามนิดหน่อย\n"
             "**<a:4420alarm1:1452655790488944681> เวลาเข้างาน:** 18:00 - 22:00 น.\n"
-            "━━━━━━━━━━━━━━━━━"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         ),
         "image": "https://media.tenor.com/tHqF_o_W3SAAAAAd/anime-maid.gif"
     },
     "maid_02": {
         "id": 612282254093451264, 
         "name": "คุณพี่มิร่า 🍷",
+        "emoji": "<a:emoji_124:1452651697737302046>",
         "color": 0x800020, 
         "desc": (
             "❝ รับชาเอิร์ลเกรย์หรือดาร์จีลิงดีคะ? ❞\n"
@@ -75,11 +77,23 @@ def get_rank_discount(total_spent):
 
 def get_status_info(guild, user_id):
     member = guild.get_member(user_id)
-    if not member: return "⚫ ไม่พบตัว", True, discord.ButtonStyle.secondary
-    if member.status == discord.Status.online: return "🟢 เข้างาน (Online)", False, discord.ButtonStyle.success
-    elif member.status == discord.Status.idle: return "🟡 พักผ่อน (Idle)", False, discord.ButtonStyle.success
-    elif member.status == discord.Status.dnd: return "🔴 ยุ่ง (Do Not Disturb)", False, discord.ButtonStyle.danger
-    else: return "⚫ ไม่เข้างาน (Offline)", True, discord.ButtonStyle.secondary
+    
+    # ถ้าหาตัวไม่เจอ
+    if not member: 
+        return "<a:9366laydowntorest:1464993190485692449> ไม่พบตัว", True, discord.ButtonStyle.secondary
+
+    # เช็คสถานะแล้วใส่ Emoji เคลื่อนไหว
+    if member.status == discord.Status.online:
+        return "<a:1370everythingisstable:1464993082234634503> เข้างาน (Online)", False, discord.ButtonStyle.success
+        
+    elif member.status == discord.Status.idle:
+        return "<:4572discordidle:1464993521110089923> พักผ่อน (Idle)", False, discord.ButtonStyle.success
+        
+    elif member.status == discord.Status.dnd:
+        return "<a:9366laydowntorest:1464993190485692449> ยุ่ง (Do Not Disturb)", False, discord.ButtonStyle.danger
+        
+    else:
+        return "<:4624discordoffline:1464993486771191979> ไม่เข้างาน (Offline)", True, discord.ButtonStyle.secondary
 
 # =========================================================
 # 🖥️ 4. ส่วนแสดงผล (View & Buttons)
@@ -92,7 +106,7 @@ class JobAcceptView(ui.View):
         self.customer_id = customer_id
         self.customer_channel_id = customer_channel_id
 
-    @ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji="✅")
+    @ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:4968_verif_green:1452650972340818040"))
     async def accept_job(self, interaction: discord.Interaction, button: ui.Button):
         # อัปเดตข้อความในห้อง Staff
         await interaction.response.edit_message(content=f"✅ **รับงานแล้วโดย:** {interaction.user.mention}", view=None)
@@ -106,7 +120,15 @@ class MaidSelect(ui.Select):
     def __init__(self):
         options = []
         for key, info in MAID_DATA.items():
-            options.append(discord.SelectOption(label=info["name"], value=key, emoji="🎀"))
+            # 👇 แก้ตรง emoji=... จาก "🎀" เป็น info.get("emoji", "🎀")
+            # (แปลว่า: ให้ใช้อิโมจิประจำตัว ถ้าไม่มีให้ใช้โบว์เป็นค่าสำรอง)
+            options.append(
+                discord.SelectOption(
+                    label=info["name"], 
+                    value=key, 
+                    emoji=info.get("emoji", "🎀") 
+                )
+            )
         super().__init__(placeholder="🔻 เลือกดูโปรไฟล์เมดท่านอื่น...", min_values=1, max_values=1, options=options, row=0)
 
     async def callback(self, interaction: discord.Interaction):
@@ -148,7 +170,7 @@ class MaidDirectoryView(ui.View):
             await interaction.response.send_message(embed=embed, view=self)
 
     # --- ปุ่ม 1: เรียกเมด (15 เครดิต + XP) ---
-    @ui.button(label="เรียกเมด (15 เครดิต)", style=discord.ButtonStyle.success, emoji="🔔", row=1, custom_id="btn_call_maid")
+    @ui.button(label="เรียกเมด (15 เครดิต)", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:4381anouncementsanimated:1452658197625180322>"), row=1, custom_id="btn_call_maid")
     async def call_paid(self, interaction: discord.Interaction, button: ui.Button):
         user_id = str(interaction.user.id)
         data = load_db()
@@ -188,11 +210,11 @@ class MaidDirectoryView(ui.View):
         # 6. ส่งข้อความตอบกลับ
         target_maid = MAID_DATA[self.current_maid_key]
         
-        msg = f"✅ **ชำระเงินสำเร็จ!** (หัก {final_price} เครดิต)\n"
+        msg = f"<a:4968_verif_green:1452650972340818040> **ชำระเงินสำเร็จ!** (หัก {final_price} เครดิต)\n"
         if rank_name != "Guest":
-            msg += f"🔰 **(สิทธิพิเศษ {rank_name}: ลดราคา {discount_percent}%)**\n"
+            msg += f"<a:Little_Pretty_Star_Yellow:1451907037012164720> **(สิทธิพิเศษ {rank_name}: ลดราคา {discount_percent}%)**\n"
             
-        msg += f"💎 เครดิตคงเหลือ: **{data[user_id]['points']}**\n"
+        msg += f"<a:849305166716993647:1449360337005449367> เครดิตคงเหลือ: **{data[user_id]['points']}**\n"
         msg += f"📈 ยอดสะสม (XP): **{new_spent}** (ระดับ: {new_rank})\n"
         msg += f"กำลังตามน้อง **{target_maid['name']}** มาค่ะ! 💨"
         
@@ -219,21 +241,21 @@ class MaidDirectoryView(ui.View):
         await self.notify_staff(interaction, mode="PAID_CREDIT")
 
     # --- ปุ่ม 2: เรียก VIP ---
-    @ui.button(label="VIP Only", style=discord.ButtonStyle.primary, emoji="💎", row=1, custom_id="btn_vip")
+    @ui.button(label="VIP Only", style=discord.ButtonStyle.primary, emoji=discord.PartialEmoji.from_str("<a:74780diamond:1465002711056384186>"), row=1, custom_id="btn_vip")
     async def call_vip(self, interaction: discord.Interaction, button: ui.Button):
         has_vip = any(role.id == VIP_ROLE_ID for role in interaction.user.roles)
 
         if has_vip:
             target_maid = MAID_DATA[self.current_maid_key]
             msg = (f"✨ **Welcome VIP Member!** ✨\n"
-                   f"ขอบพระคุณที่สนับสนุนเรานะคะ นายท่าน! 💖\n"
+                   f"ขอบพระคุณที่สนับสนุนเรานะคะ💖\n"
                    f"กำลังตามน้อง **{target_maid['name']}** มาดูแลทันทีค่ะ!")
             await interaction.response.send_message(msg, ephemeral=True)
             await self.notify_staff(interaction, mode="PAID_REAL_MONEY")
         else:
             embed = discord.Embed(
                 title="⛔ เฉพาะสมาชิก VIP เท่านั้น!",
-                description="**💎 สมัคร VIP เพียง 50 บาท/เดือน**\nได้รับสิทธิ์เรียกเมดได้ไม่อั้น และห้องส่วนตัว!",
+                description="**<a:74780diamond:1465002711056384186> สมัคร VIP เพียง 50 บาท/เดือน**\nได้รับสิทธิ์เรียกเมดได้ไม่อั้น และห้องส่วนตัว!",
                 color=0xff0000
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -245,58 +267,57 @@ class MaidDirectoryView(ui.View):
     async def check_card(self, interaction: discord.Interaction, button: ui.Button):
         data = load_db()
         user_id = str(interaction.user.id)
-        user_data = data.get(user_id, {}) # ดึงข้อมูลทั้งหมดของคนนั้น
+        user_data = data.get(user_id, {}) 
 
-        # 1. ดึงข้อมูลส่วนตัว (ถ้าไม่มีให้ใส่ขีด -)
-        my_name = user_data.get("name", "-")
+        # 1. ดึงข้อมูล
+        my_name = user_data.get("name", "ไม่ระบุ")
         my_age = user_data.get("age", "-")
         my_gender = user_data.get("gender", "ไม่ระบุ")
-        my_status = user_data.get("status", "ว่างเสมอเพื่อเธอคนเดียว") # คำคมตั้งต้น 55+
+        my_status = user_data.get("status", "ว่างเสมอเพื่อเธอคนเดียว").strip() # .strip() เพื่อตัดช่องว่างหัวท้าย
         
-        # 2. ระบบคำเรียกขานอัจฉริยะ (Smart Title)
-        title_call = "นายท่าน" # ค่าเริ่มต้น
+        # 2. คำเรียก
+        title_call = "นายท่าน"
         if "หญิง" in my_gender or "Female" in my_gender:
             title_call = "คุณหนู"
-        elif "ชาย" in my_gender or "Male" in my_gender:
-            title_call = "นายท่าน"
 
-        # 3. ข้อมูลการเงิน (เหมือนเดิม)
+        # 3. ข้อมูลการเงิน
         points = user_data.get("points", 0)
         total_spent = user_data.get("total_spent", 0)
         rank_name, discount, rank_color = get_rank_discount(total_spent)
         
-        # 4. สร้าง Embed แบบใหม่ ไฉไลกว่าเดิม!
+        # 4. สร้าง Embed
         embed = discord.Embed(
-            title=f"💳 Maid Cafe Passport: {title_call} {interaction.user.display_name}", 
-            description=f"นี่คือข้อมูลสมาชิกของ{title_call}ค่ะ 💕",
+            title=f"💳 Maid Passport: {title_call} {interaction.user.display_name}", 
+            description=f"ข้อมูลสมาชิกอย่างเป็นทางการ",
             color=rank_color
         )
         
-        # ใส่รูป Profile ที่ลูกค้าอัปโหลดมา (ถ้ามี) หรือใช้รูป Discord
         if "avatar_url" in user_data and user_data["avatar_url"]:
             embed.set_thumbnail(url=user_data["avatar_url"])
         else:
             embed.set_thumbnail(url=interaction.user.display_avatar.url)
 
-        # จัดวาง Layout สวยๆ
-        embed.add_field(name="📛 ชื่อในวงการ", value=my_name, inline=True)
-        embed.add_field(name="🎂 อายุ", value=f"{my_age} ปี", inline=True)
+        # --- ส่วนข้อมูลส่วนตัว ---
+        embed.add_field(name="<:1685member:1451949628412006490> ชื่อในวงการ", value=my_name, inline=True)
+        embed.add_field(name="<:22236cutesystar:1451888594750013521> อายุ", value=f"{my_age} ปี", inline=True)
         embed.add_field(name="🚻 เพศ", value=my_gender, inline=True)
         
-        embed.add_field(name="💬 สเตตัส", value=f"❝ {my_status} ❞", inline=False) # ใส่เครื่องหมายคำพูดเท่ๆ
+        embed.add_field(name="<a:9754_Loading:1449346048416809100> สเตตัส", value=f"❝ {my_status} ❞", inline=False) # จัดจัดคำพูดให้สวย
         
-        embed.add_field(name="━━━━━━━━━━━━━━", value="**ข้อมูลสมาชิก**", inline=False)
-        embed.add_field(name="🔰 ระดับชั้น", value=f"**{rank_name}** (ลด {discount}%)", inline=True)
-        embed.add_field(name="💰 เครดิตคงเหลือ", value=f"**{points}**", inline=True)
-        embed.add_field(name="📈 ยอดเปย์รวม", value=f"**{total_spent}**", inline=True)
+        # --- เส้นคั่นแบบทึบ (ดูแพงกว่า) ---
+        embed.add_field(name="━━━━━━━━━━━━━━━━━━━━", value="**STATISTICS**", inline=False)
         
-        # Footer น่ารักๆ
-        embed.set_footer(text=f"ขอบคุณที่ไว้วางใจให้เราดูแลนะคะ {title_call} 🥰")
+        # --- ส่วนข้อมูลเกม (ใส่ลูกน้ำ , ให้ตัวเลข) ---
+        embed.add_field(name="<a:68230questionexclaimanimated:1465006064276607283> ระดับชั้น", value=f"**{rank_name}**\n(ลด {discount}%)", inline=True)
+        embed.add_field(name="<a:853235082922819604:1449360343947153538> เครดิต", value=f"**{points:,}**", inline=True)     # 👈 ใส่ , ตรงนี้
+        embed.add_field(name="📈 ยอดเปย์", value=f"**{total_spent:,}**", inline=True) # 👈 ใส่ , ตรงนี้
+        
+        embed.set_footer(text=f"Card Holder: {interaction.user.name} • Maid Cafe System")
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     # --- ปุ่ม 4: รีเฟรช ---
-    @ui.button(label="รีเฟรช", style=discord.ButtonStyle.secondary, emoji="🔄", row=2)
+    @ui.button(label="รีเฟรช", style=discord.ButtonStyle.secondary, emoji=discord.PartialEmoji.from_str("<a:4428ghosticonload:1465007188106936487>"), row=2)
     async def refresh(self, interaction, button):
         await self.refresh_display(interaction, is_edit=True)
 
@@ -345,7 +366,7 @@ class MaidDirectoryView(ui.View):
         # 2. เตรียมข้อความแจ้งเตือน
         target_maid = MAID_DATA[self.current_maid_key]
         if mode == "PAID_REAL_MONEY":
-            header_text = "👑 VIP เรียกเมด!"
+            header_text = "<a:922779969082519603:1451954184659275989> VIP เรียกเมด!"
             desc_text = "✨ สมาชิกรายเดือน (Unlimited Access)"
             embed_color = 0xFFD700
         else:
@@ -356,8 +377,8 @@ class MaidDirectoryView(ui.View):
         embed = discord.Embed(title=header_text, description=f"เมด: **{target_maid['name']}**\n{desc_text}", color=embed_color)
         
         # 3. ใส่ข้อมูลลงใน Embed
-        embed.add_field(name="👤 ลูกค้า", value=interaction.user.mention, inline=True)
-        embed.add_field(name="🔰 ระดับ", value=f"**{rank_display}**", inline=True) # ✅ โชว์ยศที่เช็คจาก Discord
+        embed.add_field(name="<:1685member:1451949628412006490> ลูกค้า", value=interaction.user.mention, inline=True)
+        embed.add_field(name="<a:68230questionexclaimanimated:1465006064276607283> ระดับ", value=f"**{rank_display}**", inline=True) # ✅ โชว์ยศที่เช็คจาก Discord
         embed.add_field(name="📍 ห้อง", value=interaction.channel.mention, inline=True)
         
         if interaction.user.avatar:
@@ -438,10 +459,16 @@ class MaidSystem(commands.Cog):
         embed = discord.Embed(
             title="🏨 จุดรับบัตรคิว (Queue Station)",
             description=(
-                "ต้องการใช้บริการแต่เมดไม่ว่าง? หรือต้องการจองคิวล่วงหน้า?\n"
-                "👇 **กดรับบัตรคิวได้ที่ปุ่มด้านล่างเลยค่ะ**\n\n"
-                "*ระบบจะแจ้งเตือนเมื่อถึงคิวของคุณ*"
-            ),
+    "❝ ยินดีต้อนรับกลับบ้านค่ะ นายท่าน! ❞\n"  # คำโปรย ใส่เครื่องหมายคำพูดเท่ๆ
+    "━━━━━━━━━━━━━━━━━━━━━━\n"         # เส้นคั่น (พระเอกของเรา)
+    "บริการของเรามีดังนี้ค่ะ:\n\n"
+    "☕ **Maid Service**\n"
+    "└ เรียกน้องเมดมาพูดคุยดูแลใจ\n\n"         # ใช้สัญลักษณ์ Tree structure
+    "🎟️ **Queue System**\n"
+    "└ จองคิวล่วงหน้าเมื่อร้านเต็ม\n"
+    "━━━━━━━━━━━━━━━━━━━━━━\n"
+    "*กดปุ่มด้านล่างเพื่อเลือกบริการได้เลยนะคะ* 👇"
+),
             color=0x3498db
         )
         embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
@@ -560,7 +587,7 @@ class QueueStaffView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="เรียกคิวถัดไป (Call Next)", style=discord.ButtonStyle.success, emoji="🔔", custom_id="staff_call_next")
+    @discord.ui.button(label="เรียกคิวถัดไป (Call Next)", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:4381anouncementsanimated:1452658197625180322>"), custom_id="staff_call_next")
     async def call_next(self, interaction: discord.Interaction, button: discord.ui.Button):
         # โหลดข้อมูล
         data = load_db()
