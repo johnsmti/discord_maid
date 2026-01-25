@@ -1,0 +1,31 @@
+{
+    "1003648680903061556": {
+        "name": "we",
+        "age": "45",
+        "gender": "\u0e0a\u0e32\u0e22",
+        "status": "\u0e42\u0e2a\u0e14",
+        "avatar_url": "https://cdn.discordapp.com/avatars/1003648680903061556/a_52e2a2348cc4b4177bdd0d37631ab8b2.gif?size=1024",
+        "points": 299930,
+        "oshi_id": null,
+        "last_checkin": "2026-01-17",
+        "daily_count": 1,
+        "last_usage_date": "2026-01-17",
+        "total_spent": 90,
+        "credit": 30,
+        "welcome_claimed": true
+    },
+    "612282254093451264": {
+        "name": "\u0e23\u0e01\u0e2a",
+        "age": "28",
+        "gender": "\u0e2a\u0e1e\u0e2a\u0e33",
+        "status": "\u0e01\u0e32\u0e44\u0e2a",
+        "avatar_url": "https://cdn.discordapp.com/avatars/612282254093451264/2c2dee2d10d972e53cc676c2d01031d6.png?size=1024",
+        "points": 30,
+        "oshi_id": null,
+        "last_checkin": "2026-01-11"
+    },
+    "queue_system": {
+        "current_run_number": 2,
+        "waiting_list": []
+    }
+}
