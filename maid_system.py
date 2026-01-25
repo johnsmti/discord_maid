@@ -587,7 +587,7 @@ class QueueStaffView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="เรียกคิวถัดไป (Call Next)", style=discord.ButtonStyle.success, emoji="🔔", custom_id="staff_call_next")
+    @discord.ui.button(label="เรียกคิวถัดไป (Call Next)", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:4381anouncementsanimated:1452658197625180322>"), custom_id="staff_call_next")
     async def call_next(self, interaction: discord.Interaction, button: discord.ui.Button):
         # โหลดข้อมูล
         data = load_db()
