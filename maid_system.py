@@ -109,7 +109,7 @@ class JobAcceptView(discord.ui.View):
     @discord.ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:891082906674561094:1449346135973040211>"))
     async def accept_job(self, interaction: discord.Interaction, button: discord.ui.Button):
         # 1. อัปเดตห้อง Staff (เปลี่ยนปุ่มเป็นชื่อคนรับ)
-        await interaction.response.edit_message(content=f"✅ **รับงานแล้วโดย:** {interaction.user.mention}", view=None)
+        await interaction.response.edit_message(content=f"<a:a6c11ff717404110ab1f8359f7a3e119:1449346222233092117> **รับงานแล้วโดย:** {interaction.user.mention}", view=None)
         
         # 2. แจ้งลูกค้า (ในห้องเดิมเลย ไม่ไป DM)
         guild = interaction.guild
@@ -118,7 +118,7 @@ class JobAcceptView(discord.ui.View):
         if channel:
             # สร้างข้อความสวยๆ
             embed = discord.Embed(
-                description=f"💖 **รับทราบค่ะ!**\nน้อง {interaction.user.mention} กำลังรีบไปดูแลนายท่าน <@{self.customer_id}> ที่โต๊ะนะคะ 💨",
+                description=f"💖 **รับทราบค่ะ!**\nน้อง {interaction.user.mention} กำลังรีบไปดูแล <@{self.customer_id}> ที่โต๊ะนะคะ 💨",
                 color=0xE91E63 # สีชมพูสดใส
             )
             # ใส่รูปคนรับงานโชว์เลย
