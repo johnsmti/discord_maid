@@ -100,21 +100,34 @@ def get_status_info(guild, user_id):
 # =========================================================
 
 # 👇👇 Class ปุ่มรับงานสำหรับ Staff (เพิ่มกลับมาให้แล้วครับ) 👇👇
-class JobAcceptView(ui.View):
+class JobAcceptView(discord.ui.View):
     def __init__(self, customer_id, customer_channel_id):
         super().__init__(timeout=None)
         self.customer_id = customer_id
         self.customer_channel_id = customer_channel_id
 
-    @ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:4968_verif_green:1452650972340818040"))
-    async def accept_job(self, interaction: discord.Interaction, button: ui.Button):
-        # อัปเดตข้อความในห้อง Staff
-        await interaction.response.edit_message(content=f"✅ **รับงานแล้วโดย:** {interaction.user.mention}", view=None)
+    @discord.ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:891082906674561094:1449346135973040211>"))
+    async def accept_job(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # 1. อัปเดตห้อง Staff (เปลี่ยนปุ่มเป็นชื่อคนรับงาน)
+        await interaction.response.edit_message(content=f"<a:a6c11ff717404110ab1f8359f7a3e119:1449346222233092117> **รับงานแล้วโดย:** {interaction.user.mention}", view=None)
         
-        # ส่งข้อความไปหาลูกค้า
-        channel = interaction.guild.get_channel(self.customer_channel_id)
+        # 2. ประกาศเรียกในห้องลูกค้า (ห้องเดิม)
+        guild = interaction.guild
+        channel = guild.get_channel(self.customer_channel_id)
+        
         if channel:
-            await channel.send(f"**รับทราบค่ะ!** น้อง {interaction.user.mention} กำลังรีบไปหานะคะ 💨")
+            # สร้างกรอบข้อความสวยๆ
+            embed = discord.Embed(
+                description=f"💖 **รับทราบค่ะ!**\nน้อง {interaction.user.mention} กำลังรีบไปดูแลนายท่าน <@{self.customer_id}> ที่โต๊ะนะคะ 💨",
+                color=0xE91E63 # สีชมพูสดใส
+            )
+            
+            # เอารูปของ Staff (เมด) มาโชว์
+            if interaction.user.avatar:
+                embed.set_thumbnail(url=interaction.user.avatar.url)
+
+            # ส่งเข้าห้อง (พร้อมแท็กชื่อลูกค้า)
+            await channel.send(content=f"<@{self.customer_id}>", embed=embed, delete_after=7)
 
 class MaidSelect(ui.Select):
     def __init__(self):
