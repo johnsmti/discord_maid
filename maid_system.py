@@ -106,37 +106,27 @@ class JobAcceptView(discord.ui.View):
         self.customer_id = customer_id
         self.customer_channel_id = customer_channel_id
 
-    @discord.ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji="✅")
+    @discord.ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:891082906674561094:1449346135973040211>"))
     async def accept_job(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # 1. อัปเดตห้อง Staff (ให้ปุ่มหายไป) เปลี่ยนเป็นชื่อคนรับงาน
+        # 1. อัปเดตห้อง Staff (เปลี่ยนปุ่มเป็นชื่อคนรับ)
         await interaction.response.edit_message(content=f"✅ **รับงานแล้วโดย:** {interaction.user.mention}", view=None)
         
-        # 2. เตรียมข้อมูลลูกค้า
+        # 2. แจ้งลูกค้า (ในห้องเดิมเลย ไม่ไป DM)
         guild = interaction.guild
-        customer = guild.get_member(self.customer_id)
+        channel = guild.get_channel(self.customer_channel_id)
         
-        # ข้อความที่จะส่ง (ใส่ Embed ให้สวยงาม)
-        embed = discord.Embed(
-            description=f"🏃‍♀️ **รับทราบค่ะ!**\nน้อง {interaction.user.mention} รับงานแล้ว และกำลังรีบไปหานะคะ 💨", 
-            color=0x2ecc71
-        )
+        if channel:
+            # สร้างข้อความสวยๆ
+            embed = discord.Embed(
+                description=f"💖 **รับทราบค่ะ!**\nน้อง {interaction.user.mention} กำลังรีบไปดูแลนายท่าน <@{self.customer_id}> ที่โต๊ะนะคะ 💨",
+                color=0xE91E63 # สีชมพูสดใส
+            )
+            # ใส่รูปคนรับงานโชว์เลย
+            if interaction.user.avatar:
+                embed.set_thumbnail(url=interaction.user.avatar.url)
 
-        # 3. ระบบ Hybrid (พยายามส่ง DM ก่อน)
-        sent_in_dm = False
-        if customer:
-            try:
-                # 📨 ส่งเข้า DM ส่วนตัว (Private 100%)
-                await customer.send(embed=embed)
-                sent_in_dm = True
-            except:
-                pass # ถ้าลูกค้าปิด DM ก็ข้ามไป
-
-        # 4. ถ้าส่ง DM ไม่ได้ -> ให้ส่งในห้องเดิมแต่ลบใน 10 วิ (กันรก)
-        if not sent_in_dm:
-            channel = guild.get_channel(self.customer_channel_id)
-            if channel:
-                # delete_after=10 คือทีเด็ด! ส่งปุ๊บ นับถอยหลัง 10 วิ ลบทิ้งทันที
-                await channel.send(content=f"<@{self.customer_id}>", embed=embed, delete_after=10)
+            # ส่งแบบปกติ (ไม่ลบ) ให้ทุกคนเห็นความน่ารัก
+            await channel.send(content=f"<@{self.customer_id}>", embed=embed)
 
 class MaidSelect(ui.Select):
     def __init__(self):
