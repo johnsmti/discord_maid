@@ -127,7 +127,7 @@ class JobAcceptView(discord.ui.View):
                 embed.set_thumbnail(url=interaction.user.avatar.url)
 
             # ส่งเข้าห้อง (พร้อมแท็กชื่อลูกค้า)
-            await channel.send(content=f"<@{self.customer_id}>", embed=embed)
+            await channel.send(content=f"<@{self.customer_id}>", embed=embed, delete_after=7)
 
 class MaidSelect(ui.Select):
     def __init__(self):
