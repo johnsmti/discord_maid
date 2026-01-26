@@ -106,15 +106,39 @@ class JobAcceptView(ui.View):
         self.customer_id = customer_id
         self.customer_channel_id = customer_channel_id
 
-    @ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji=discord.PartialEmoji.from_str("<a:4968_verif_green:1452650972340818040"))
+    @ui.button(label="กดเพื่อรับงานนี้", style=discord.ButtonStyle.success, emoji="✅")
     async def accept_job(self, interaction: discord.Interaction, button: ui.Button):
-        # อัปเดตข้อความในห้อง Staff
+        # 1. อัปเดตห้อง Staff (ให้ปุ่มหายไป)
         await interaction.response.edit_message(content=f"✅ **รับงานแล้วโดย:** {interaction.user.mention}", view=None)
         
-        # ส่งข้อความไปหาลูกค้า
-        channel = interaction.guild.get_channel(self.customer_channel_id)
-        if channel:
-            await channel.send(f"**รับทราบค่ะ!** น้อง {interaction.user.mention} กำลังรีบไปหานะคะ 💨")
+        # 2. เตรียมข้อมูลลูกค้า
+        guild = interaction.guild
+        customer = guild.get_member(self.customer_id)
+        
+        # ข้อความที่จะส่ง
+        msg_content = (
+            f"🏃‍♀️ **รับทราบค่ะ!**\n"
+            f"น้อง {interaction.user.mention} รับงานแล้ว และกำลังรีบไปหานะคะ 💨"
+        )
+        embed = discord.Embed(description=msg_content, color=0x2ecc71) # สีเขียวสวยๆ
+
+        # 3. ระบบ Hybrid Notification
+        sent_in_dm = False
+        
+        # พยายามส่ง DM ก่อน
+        if customer:
+            try:
+                await customer.send(embed=embed)
+                sent_in_dm = True
+            except:
+                pass # ถ้าส่งไม่ได้ (ปิด DM) ให้ข้ามไปทำขั้นตอนต่อไป
+
+        # ถ้าส่ง DM ไม่ได้ หรือหาตัวไม่เจอ -> ให้ส่งในห้องเดิมแต่ลบใน 10 วิ
+        if not sent_in_dm:
+            channel = guild.get_channel(self.customer_channel_id)
+            if channel:
+                # delete_after=10 คือทีเด็ด! ส่งปุ๊บ นับถอยหลัง 10 วิ ลบทิ้งทันที
+                await channel.send(f"<@{self.customer_id}>", embed=embed, delete_after=10)
 
 class MaidSelect(ui.Select):
     def __init__(self):
