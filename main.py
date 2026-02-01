@@ -135,6 +135,7 @@ class MyMaidBot(commands.Bot):
         # โหลดระบบแยกไฟล์
         await self.load_extension("cogs.maid_system")
         # await self.load_extension("cogs.time_system") # (ถ้ามีก็เปิดใช้)
+        await self.load_extension("cogs.gacha_system")
         
         await self.tree.sync()
         
