@@ -191,7 +191,7 @@ class GachaSystem(commands.Cog):
 
         # 3. ให้รางวัล (แจกยศ)
         # ⚠️⚠️ แก้ ID ยศตรงนี้ให้เป็นของเซิร์ฟท่านนะครับ ⚠️⚠️
-        VIP_ROLE_ID = 123456789012345678 
+        VIP_ROLE_ID = 1467444157759881380 
         
         role = ctx.guild.get_role(VIP_ROLE_ID)
         if role:
