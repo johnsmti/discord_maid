@@ -23,16 +23,16 @@ def save_db(data):
 # =========================================================
 GACHA_POOL = [
     # --- เกลือ (Salt) 60% ---
-    {"id": "item_salt", "name": "เกลือแกง (ไม่มีค่า)", "rarity": "N", "rate": 60, "type": "junk", "img": "https://cdn-icons-png.flaticon.com/512/2600/2600234.png"},
+    {"id": "item_salt", "name": "เกลือแกง (ไม่มีค่า)", "rarity": "N", "rate": 69, "type": "junk", "img": "https://cdn-icons-png.flaticon.com/512/2600/2600234.png"},
     
     # --- ชิ้นส่วนหัวใจ (Puzzle Pieces) 36% (ชิ้นละ 9%) ---
-    {"id": "puzzle_1", "name": "🧩 จิ๊กซอว์: หัวใจบนซ้าย", "rarity": "R", "rate": 9, "type": "shard", "img": "https://cdn-icons-png.flaticon.com/512/7650/7650965.png"},
-    {"id": "puzzle_2", "name": "🧩 จิ๊กซอว์: หัวใจบนขวา", "rarity": "R", "rate": 9, "type": "shard", "img": "https://cdn-icons-png.flaticon.com/512/7650/7650965.png"},
-    {"id": "puzzle_3", "name": "🧩 จิ๊กซอว์: หัวใจล่างซ้าย", "rarity": "R", "rate": 9, "type": "shard", "img": "https://cdn-icons-png.flaticon.com/512/7650/7650965.png"},
-    {"id": "puzzle_4", "name": "🧩 จิ๊กซอว์: หัวใจล่างขวา", "rarity": "R", "rate": 9, "type": "shard", "img": "https://cdn-icons-png.flaticon.com/512/7650/7650965.png"},
+    {"id": "puzzle_1", "name": "🧩 จิ๊กซอว์: หัวใจบนซ้าย", "rarity": "R", "rate": 15, "type": "shard", "img": "https://cdn-icons-png.flaticon.com/512/7650/7650965.png"},
+    {"id": "puzzle_2", "name": "🧩 จิ๊กซอว์: หัวใจบนขวา", "rarity": "R", "rate": 8, "type": "shard", "img": "https://cdn-icons-png.flaticon.com/512/7650/7650965.png"},
+    {"id": "puzzle_3", "name": "🧩 จิ๊กซอว์: หัวใจล่างซ้าย", "rarity": "R", "rate": 5, "type": "shard", "img": "https://cdn-icons-png.flaticon.com/512/7650/7650965.png"},
+    {"id": "puzzle_4", "name": "🧩 จิ๊กซอว์: หัวใจล่างขวา", "rarity": "R", "rate": 2, "type": "shard", "img": "https://cdn-icons-png.flaticon.com/512/7650/7650965.png"},
 
     # --- แจ็คพอต (Instant Win) 4% ---
-    {"id": "ticket_free", "name": "🎟️ ตั๋วเรียกเมดฟรี", "rarity": "SSR", "rate": 4, "type": "item", "img": "https://cdn-icons-png.flaticon.com/512/10328/10328082.png"}
+    {"id": "ticket_free", "name": "🎟️ ตั๋วเรียกเมดฟรี", "rarity": "SSR", "rate": 1, "type": "item", "img": "https://cdn-icons-png.flaticon.com/512/10328/10328082.png"}
 ]
 
 # =========================================================
@@ -108,6 +108,45 @@ class GachaMachineView(discord.ui.View):
         embed.set_footer(text=f"เครดิตคงเหลือ: {data[user_id]['points']}")
 
         await interaction.edit_original_response(content=None, embed=embed)
+    
+    @discord.ui.button(label="เช็คจิ๊กซอว์ที่ขาด", style=discord.ButtonStyle.secondary, emoji="🎒", custom_id="btn_gacha_check")
+    async def check_inventory(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_id = str(interaction.user.id)
+        data = load_db()
+        inventory = data.get(user_id, {}).get("inventory", [])
+
+        # 1. เช็คจิ๊กซอว์ทั้ง 4 ชิ้น
+        puzzles = ["puzzle_1", "puzzle_2", "puzzle_3", "puzzle_4"]
+        found_count = 0
+        progress_bar = ""
+        
+        desc = ""
+        for p_id in puzzles:
+            # หาชื่อไอเทมจาก ID
+            item_name = next((x["name"] for x in GACHA_POOL if x["id"] == p_id), "Unknown")
+            
+            if p_id in inventory:
+                found_count += 1
+                progress_bar += "🟩" # สีเขียว = มีแล้ว
+                desc += f"✅ **มีแล้ว:** {item_name}\n"
+            else:
+                progress_bar += "⬛" # สีดำ = ยังไม่มี
+                desc += f"❌ **ยังขาด:** {item_name}\n"
+
+        # 2. สร้าง Embed โชว์ (เห็นคนเดียว)
+        embed = discord.Embed(
+            title=f"🎒 กระเป๋าของ {interaction.user.name}",
+            description=f"**ความคืบหน้า:** `{progress_bar}` ({found_count}/4)\n\n{desc}",
+            color=0x00ff00 if found_count == 4 else 0xffcc00
+        )
+        
+        if found_count == 4:
+            embed.set_footer(text="✨ ครบแล้ว! พิมพ์ !craft เพื่อรับรางวัลได้เลย!")
+        else:
+            embed.set_footer(text=f"ขาดอีก {4 - found_count} ชิ้น! สู้ต่อไป!")
+
+        # ส่งแบบ Ephemeral (เห็นแค่คนกด)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 # =========================================================
 # 🛠️ ระบบคราฟต์ของ (Crafting System)
@@ -119,19 +158,40 @@ class GachaSystem(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def setup_gacha(self, ctx):
-        """ตั้งตู้กาชา"""
+        """ตั้งตู้กาชา (เวอร์ชันอัปเกรด UI)"""
         await ctx.message.delete()
+        
+        # สร้าง Embed
         embed = discord.Embed(
-            title="🧩 ตู้กาชาสะสมจิ๊กซอว์",
+            title="✨ MAID CAFE GACHA PON ✨",
             description=(
-                "**ภารกิจ:** ตามหาหัวใจเมดทั้ง 4 ส่วน! 💖\n"
-                "สะสมครบ 4 มุม (🧩x4) รับยศ **True Love VIP** ทันที!\n\n"
-                "💸 **ค่าบริการ:** 100 เครดิต / ครั้ง\n"
-                "🛠️ **วิธีแลกรางวัล:** พิมพ์ `!craft` เมื่อครบ"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                "🧩 **ภารกิจ: ตามหาหัวใจเมดให้ครบ 4 ส่วน!**\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                "💎 **รางวัลใหญ่:** ยศ **True Love VIP** 👑\n"
+                "*(สิทธิพิเศษเข้าห้องลับ + ชื่อสีชมพูสุดเท่)*\n\n"
+                "📜 **กติกาการเล่น:**\n"
+                "1️⃣ กดปุ่มสีแดงเพื่อหมุน (100 เครดิต)\n"
+                "2️⃣ สะสมจิ๊กซอว์ให้ครบ 4 มุม (🧩x4)\n"
+                "3️⃣ พิมพ์ `!craft` เพื่อแลกรางวัลทันที!"
             ),
-            color=0xFF0000
+            color=0xFF69B4 # สีชมพู Hot Pink
         )
+
+        # 🖼️ 1. รูปเล็กขวาบน (Thumbnail) -> สื่อถึงการสุ่ม/จิ๊กซอว์
+        embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/4522/4522434.png") 
+
+        # 🖼️ 2. รูปใหญ่ด้านล่าง (Banner) -> เลือกเอา 1 อันด้านล่างนี้ไปใส่ครับ 👇
+        
+        # [Option A] รูปหัวใจครบส่วน (ตามที่คุณต้องการ)
+        # embed.set_image(url="https://i.pinimg.com/736x/88/24/7a/88247a83d7224208bd4bc45722a36214.jpg")
+        
+        # [Option B] รูปตู้กาชาขยับได้ (ดูน่าตื่นเต้น) *ผมแนะนำอันนี้*
         embed.set_image(url="https://media1.tenor.com/m/72w9tT2C4sQAAAAC/genshin-impact-wish.gif")
+
+        # Footer เท่ๆ
+        embed.set_footer(text="📢 คำเตือน: ระวังเกลือ! โปรดใช้วิจารณญาณในการหมุน", icon_url=ctx.guild.icon.url if ctx.guild.icon else None)
+        
         await ctx.send(embed=embed, view=GachaMachineView())
 
     @commands.command()
